@@ -1,0 +1,596 @@
+     if($ebpRfAntennaConfig && count($ebpRfAntennaConfig) > 0){
+            $sheet = $spreadsheet->getSheetByName('Antenna Systems(RF)');
+            $main_array = $existing =  $proposed = [];
+            if(isset($ebpRfAntennaConfig['existing'])){              //dd($ebpRfAntennaConfig);
+                $existing = $this->getExistingAntennaGrid($ebpRfAntennaConfig['existing']);
+            } // dd($existing);
+            // dd($existing[2]['tu_information'][9]);
+            if(isset($ebpRfAntennaConfig['existing']['no_of_sectors'])){
+                $i=35;
+                $sheet->mergeCells("J".($i).":M".($i));    
+                $sheet->getCell('J'.$i)->setValue(ExcelConstant::NoOfSectorsRFNSA);
+                $sheet->getCell('N'.$i)->setValue($ebpRfAntennaConfig['existing']['no_of_sectors']);             
+                $i++;               
+            }   
+            if(isset($existing[0]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));            
+                $sheet->getCell('C'.$i)->setValue($existing[0]['sector']);
+                $sheet->getStyle("C".($i).":AU".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);              
+                $i++; 
+                
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;
+            }          
+          
+            if(isset($existing[0]['titles'])){
+                //$i=38;//dd($existing[0]['titles']);
+                foreach($existing[0]['titles'] as $infor){
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');     
+                $sheet->mergeCells("C".($i).":G".($i));    
+                $sheet->getCell('C'.$i)->setValue($infor);
+                $i++;
+                }               
+            }
+            //------------------------------------- 
+            $column_index=0;
+            $columns=['H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+          
+            if(isset($existing[0]['tu_information'])){
+                foreach($existing[0]['tu_information'] as $infor){
+                    $i=37;
+                    foreach($infor as $information){
+                        $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                        $i++;                                    
+                    }   
+                    $column_index++;
+                }
+            } 
+
+            $column_index=0;
+            $i=$i+1;
+            if(isset($existing[1]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));         
+                $sheet->getCell('C'.$i)->setValue($existing[1]['sector']);
+                $sheet->getStyle("C".($i).":AU".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+ 
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;  
+
+                foreach($existing[1]['titles'] as $infor){
+                        $sheet->getStyle("C".($i).":G".($i))->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('AEAEAE');     
+                        $sheet->mergeCells("C".($i).":G".($i));    
+                        $sheet->getCell('C'.$i)->setValue($infor);
+                        $i++;
+                    }
+                if(isset($existing[1]['tu_information'])){
+                    foreach($existing[1]['tu_information'] as $infor){
+                        $i=$i+34;
+                        foreach($infor as $information){
+                            $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                            $i++;                           
+                        }
+                        $column_index++;
+                    }
+                 }
+            }            
+            $column_index=0;
+            $i=$i+1;          
+            if(isset($existing[2]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));     
+                $sheet->getCell('C'.$i)->setValue($existing[2]['sector']);
+                $sheet->getStyle("C".($i).":AU".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+ 
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;  
+
+                foreach($existing[2]['titles'] as $infor){
+                        $sheet->getStyle("C".($i).":G".($i))->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('AEAEAE');     
+                        $sheet->mergeCells("C".($i).":G".($i));    
+                        $sheet->getCell('C'.$i)->setValue($infor);
+                        $i++;
+                    }
+                if(isset($existing[2]['tu_information'])){
+                    foreach($existing[2]['tu_information'] as $infor){
+                        $i=$i+34;
+                        foreach($infor as $information){
+                            $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                            $i++;                           
+                        }
+                        $column_index++;
+                    }
+                }
+            }  
+            $column_index=0;
+            $i=$i+1;
+           
+            if(isset($existing[3]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));             
+                $sheet->getCell('C'.$i)->setValue($existing[3]['sector']);
+                $sheet->getStyle("C".($i).":AU".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+
+                //$j=71;  
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;  
+
+                foreach($existing[3]['titles'] as $infor){
+                        $sheet->getStyle("C".($i).":G".($i))->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('AEAEAE');     
+                        $sheet->mergeCells("C".($i).":G".($i));    
+                        $sheet->getCell('C'.$i)->setValue($infor);
+                        $i++;
+                    }
+                if(isset($existing[3]['tu_information'])){
+                    foreach($existing[3]['tu_information'] as $infor){
+                        $i=$i+34;
+                        foreach($infor as $information){
+                            $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                            $i++;           
+                        }
+                        $column_index++;
+                    }
+                }
+            }
+            $column_index=0;
+            $i=$i+1; 
+            if(isset($existing[4]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));             
+                $sheet->getCell('C'.$i)->setValue($existing[4]['sector']);
+                $sheet->getStyle("C".($i).":AU".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+
+                //$j=71;  
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;  
+
+                foreach($existing[4]['titles'] as $infor){
+                        $sheet->getStyle("C".($i).":G".($i))->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('AEAEAE');     
+                        $sheet->mergeCells("C".($i).":G".($i));    
+                        $sheet->getCell('C'.$i)->setValue($infor);
+                        $i++;
+                    }
+                if(isset($existing[4]['tu_information'])){
+                    foreach($existing[4]['tu_information'] as $infor){
+                        $i=$i+34;
+                        foreach($infor as $information){
+                            $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                            $i++;           
+                        }
+                        $column_index++;
+                    }
+                }
+            }  
+            $column_index=0;
+            $i=$i+1; 
+            if(isset($existing[5]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));             
+                $sheet->getCell('C'.$i)->setValue($existing[4]['sector']);
+                $sheet->getStyle("C".($i).":AU".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+
+                //$j=71;  
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;  
+
+                foreach($existing[5]['titles'] as $infor){
+                        $sheet->getStyle("C".($i).":G".($i))->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('AEAEAE');     
+                        $sheet->mergeCells("C".($i).":G".($i));    
+                        $sheet->getCell('C'.$i)->setValue($infor);
+                        $i++;
+                    }
+                if(isset($existing[5]['tu_information'])){
+                    foreach($existing[5]['tu_information'] as $infor){
+                        $i=$i+34;
+                        foreach($infor as $information){
+                            $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                            $i++;           
+                        }
+                        $column_index++;
+                    }
+                }
+            } 
+            $column_index=0;
+            $i=$i+1; 
+            if(isset($existing[6]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));             
+                $sheet->getCell('C'.$i)->setValue($existing[3]['sector']);
+                $sheet->getStyle("C".($i).":AU".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+
+                //$j=71;  
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;  
+
+                foreach($existing[6]['titles'] as $infor){
+                        $sheet->getStyle("C".($i).":G".($i))->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('AEAEAE');     
+                        $sheet->mergeCells("C".($i).":G".($i));    
+                        $sheet->getCell('C'.$i)->setValue($infor);
+                        $i++;
+                    }
+                if(isset($existing[6]['tu_information'])){
+                    foreach($existing[6]['tu_information'] as $infor){
+                        $i=$i+34;;
+                        foreach($infor as $information){
+                            $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                            $i++;           
+                        }
+                        $column_index++;
+                    }
+                }
+            }  
+            if(isset($ebpRfAntennaConfig['existing']['exst_plumb_uploaded_data'])){   
+               
+                $sheet->mergeCells("C".($i).":Z".($i));    
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::ExistingRFPlumbing);  
+                $sheet->getStyle("C".($i).":Z".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+                $sheet->mergeCells("C".($i).":Z".($i));    
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::ExistingRFPlumbingDiagram); 
+                $i++;     
+                $existingPlumbingDiagram = array(
+                    "ebpSumFkid" => $summaryid,
+                    "modTabFkid" => Constants::RF_ANTENNA_MODTABID,
+                    "fileGrpFkid" => Constants::EXST_PLUMB_DIAGRAM_GRPID,
+                    "fileItemFkid"=> Constants::EXST_PLUMB_DIAGRAM_ITEMID,
+                );            
+                $existingPlumbingDiagram = $this->fileUploadRepository->getUploadedFileData($existingPlumbingDiagram);        
+                $this->setUploadFiles($i, 3, $i+9, $existingPlumbingDiagram, $sheet);
+                $i=$i+6;       
+            
+                $sheet->mergeCells("C".($i).":Z".($i));    
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::DetailConnectionDiagram); 
+                $sheet->getStyle("C".($i).":Z".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+                $existingConnectionDiagram = array(
+                    "ebpSumFkid" => $summaryid,
+                    "modTabFkid" => Constants::RF_ANTENNA_MODTABID,
+                    "fileGrpFkid" => Constants::EXST_CONNEC_DIAGRAM_GRPID,
+                    "fileItemFkid"=> Constants::EXST_CONNEC_DIAGRAM_ITEMID,
+                );            
+                $existingConnectionDiagram = $this->fileUploadRepository->getUploadedFileData($existingConnectionDiagram);        
+                $this->setUploadFiles($i, 3, $i+9, $existingConnectionDiagram, $sheet);
+                $i=$i+6;                
+            }
+
+            if(isset($ebpRfAntennaConfig['proposed'])){
+                $proposed = $this->getProposedAntennaGrid($ebpRfAntennaConfig['proposed']);
+            }
+          
+            if(isset($ebpRfAntennaConfig['proposed']['no_of_sectors']) && $ebpRfAntennaConfig['proposed']['no_of_sectors']!= 0 ){
+                $sheet->mergeCells("J".($i).":M".($i));    
+                $sheet->getCell('J'.$i)->setValue(ExcelConstant::NoOfSectorsProposed);
+                $sheet->getCell('N'.$i)->setValue($ebpRfAntennaConfig['proposed']['no_of_sectors']);             
+                $i++;               
+            }   
+            if(isset($proposed[0]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));            
+                $sheet->getCell('C'.$i)->setValue($proposed[0]['sector']);
+                $sheet->getStyle("C".($i).":AU".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;                 
+                
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;
+            }         
+            if(isset($proposed[0]['titles'])){
+                //$i=38;//dd($proposed[0]['titles']);
+                foreach($proposed[0]['titles'] as $infor){
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');     
+                $sheet->mergeCells("C".($i).":G".($i));    
+                $sheet->getCell('C'.$i)->setValue($infor);
+                $i++;
+                }               
+            }
+            $column_index=0;
+            $columns=['H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+          
+            if(isset($proposed[0]['tu_information'])){
+                foreach($proposed[0]['tu_information'] as $infor){
+                    $i=$i+34;
+                    foreach($infor as $information){
+                        $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                        $i++;                                    
+                    }   
+                    $column_index++;
+                }
+            }   
+
+            $column_index=0;
+            $i=$i+1;
+            if(isset($proposed[1]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));   
+               // $sheet->getCell('C'.$i)->setValue(ExcelConstant::NoOfSectorsRFNSA); 
+                $sheet->getCell('C'.$i)->setValue($proposed[1]['sector']);
+                $sheet->getStyle("C".($i).":Z".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;               
+            }  
+            if(isset($proposed[1]['titles'])){               
+                foreach($proposed[1]['titles'] as $infor){
+                        $sheet->getStyle("C".($i).":G".($i))->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('AEAEAE');     
+                        $sheet->mergeCells("C".($i).":G".($i));    
+                        $sheet->getCell('C'.$i)->setValue($infor);
+                        $i++;
+                    } 
+            }
+           if(isset($proposed[1]['tu_information'])){                  
+                foreach($proposed[1]['tu_information'] as $infor){
+                    $i=$i+34;
+                    foreach($infor as $information){
+                        $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                        $i++;                           
+                    }
+                    $column_index++;
+                }
+            }          
+            $column_index=0;
+            $i=$i+1;
+          
+            if(isset($proposed[2]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));   
+               // $sheet->getCell('C'.$i)->setValue(ExcelConstant::NoOfSectorsRFNSA); 
+                $sheet->getCell('C'.$i)->setValue($proposed[2]['sector']);
+                $sheet->getStyle("C".($i).":Z".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+                //$j=71;  
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;              
+            } 
+            if(isset($proposed[2]['titles'])){   
+                foreach($proposed[2]['titles'] as $infor){
+                    $sheet->getStyle("C".($i).":G".($i))->getFill()
+                    ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('AEAEAE');     
+                    $sheet->mergeCells("C".($i).":G".($i));    
+                    $sheet->getCell('C'.$i)->setValue($infor);
+                    $i++;
+                } 
+            }
+            if(isset($proposed[2]['tu_information'])){   
+                foreach($proposed[2]['tu_information'] as $infor){
+                    $i=$i+34;
+                    foreach($infor as $information){
+                        $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                        $i++;                     
+                    }
+                    $column_index++;
+                }
+             }
+            $column_index=0;
+            $i=$i+1;
+           
+            if(isset($proposed[3]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));        
+                $sheet->getCell('C'.$i)->setValue($proposed[3]['sector']);
+                $sheet->getStyle("C".($i).":Z".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+  
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;                         
+                } 
+            if(isset($proposed[3]['titles'])){  
+                foreach($proposed[3]['titles'] as $infor){
+                    $sheet->getStyle("C".($i).":G".($i))->getFill()
+                    ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('AEAEAE');     
+                    $sheet->mergeCells("C".($i).":G".($i));    
+                    $sheet->getCell('C'.$i)->setValue($infor);
+                    $i++;
+                } 
+            }
+            if(isset($proposed[3]['tu_information'])){  
+                foreach($proposed[3]['tu_information'] as $infor){  
+                    $i=$i+34;                      
+                    foreach($infor as $information){
+                        $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                        $i++;                            
+                    }
+                    $column_index++;
+                }
+            }
+            $column_index=0;
+            $i=$i+1;
+            if(isset($proposed[4]['sector'])){
+                $sheet->mergeCells("C".($i).":AU".($i));        
+                $sheet->getCell('C'.$i)->setValue($proposed[4]['sector']);
+                $sheet->getStyle("C".($i).":Z".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+
+                $sheet->getStyle("C".($i).":G".($i))->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('AEAEAE');  
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                $i++;                         
+                } 
+                if(isset($proposed[4]['titles'])){  
+                    foreach($proposed[4]['titles'] as $infor){
+                        $sheet->getStyle("C".($i).":G".($i))->getFill()
+                        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                        ->getStartColor()->setARGB('AEAEAE');     
+                        $sheet->mergeCells("C".($i).":G".($i));    
+                        $sheet->getCell('C'.$i)->setValue($infor);
+                        $i++;
+                    } 
+                }
+                if(isset($proposed[4]['tu_information'])){  
+                    foreach($proposed[4]['tu_information'] as $infor){ 
+                        $i=$i+34;                       
+                        foreach($infor as $information){
+                            $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                            $i++;                            
+                        }
+                        $column_index++;
+                    }
+                }
+                $column_index=0;
+                $i=$i+1;
+                if(isset($proposed[5]['sector'])){
+                    $sheet->mergeCells("C".($i).":AU".($i));        
+                    $sheet->getCell('C'.$i)->setValue($proposed[5]['sector']);
+                    $sheet->getStyle("C".($i).":Z".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                    $i++;
+        
+                    $sheet->getStyle("C".($i).":G".($i))->getFill()
+                    ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('AEAEAE');  
+                    $sheet->getCell('C'.$i)->setValue(ExcelConstant::AntennaModel);
+                    $i++;                         
+                    } 
+                    if(isset($proposed[5]['titles'])){  
+                        foreach($proposed[5]['titles'] as $infor){
+                            $sheet->getStyle("C".($i).":G".($i))->getFill()
+                            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                            ->getStartColor()->setARGB('AEAEAE');     
+                            $sheet->mergeCells("C".($i).":G".($i));    
+                            $sheet->getCell('C'.$i)->setValue($infor);
+                            $i++;
+                        } 
+                    }
+                    if(isset($proposed[5]['tu_information'])){  
+                        foreach($proposed[5]['tu_information'] as $infor){
+                            $i=$i+34;                        
+                            foreach($infor as $information){
+                                $sheet->getCell($columns[$column_index].$i)->setValue($information);                 
+                                $i++;                            
+                            }
+                            $column_index++;
+                        }
+                    }
+            if(isset($ebpRfAntennaConfig['proposed']['prop_plumb_uploaded_data'])){   
+                //print_r("hicci");die;    empty array        
+                $sheet->mergeCells("C".($i).":Z".($i));    
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::ProposedRFPlumbing);  
+                $sheet->getStyle("C".($i).":Z".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+                $sheet->mergeCells("C".($i).":Z".($i));    
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::ProposedRFPlumbingDiagram); 
+                $i++;     
+
+                $proposedPlumbingDiagram = array(
+                    "ebpSumFkid" => $summaryid,
+                    "modTabFkid" => Constants::RF_ANTENNA_MODTABID,
+                    "fileGrpFkid" => Constants::PROP_PLUMB_DIAGRAM_GRPID,
+                    "fileItemFkid"=> Constants::PROP_PLUMB_DIAGRAM_ITEMID,
+                );
+                
+                $proposedPlumbingDiagram = $this->fileUploadRepository->getUploadedFileData($proposedPlumbingDiagram);        
+                $this->setUploadFiles($i, 3, $i+9, $proposedPlumbingDiagram, $sheet);
+                $i=$i+6;                   
+            
+                $sheet->mergeCells("C".($i).":Z".($i));    
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::DetailConnectionDiagram); 
+                $sheet->getStyle("C".($i).":Z".($i))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+                $i++;
+
+                $proposedConnectionDiagram = array(
+                    "ebpSumFkid" => $summaryid,
+                    "modTabFkid" => Constants::RF_ANTENNA_MODTABID,
+                    "fileGrpFkid" => Constants::PROP_CONNEC_DIAGRAM_GRPID,
+                    "fileItemFkid"=> Constants::PROP_CONNEC_DIAGRAM_ITEMID,
+                );
+                
+                $proposedConnectionDiagram = $this->fileUploadRepository->getUploadedFileData($proposedConnectionDiagram);        
+                $this->setUploadFiles($i, 3, $i+9, $proposedConnectionDiagram, $sheet);           
+                $i=$i+6;     
+               
+            }    
+            if(isset($ebpRfAntennaConfig['scope_of_work'])){
+                $sheet->mergeCells("C".($i).":N".($i));
+                $sheet->mergeCells("O".($i).":Q".($i));
+                $sheet->getCell('C'.$i)->setValue(ExcelConstant::SOW);
+                $sheet->getCell('O'.$i)->setValue($ebpRfAntennaConfig['scope_of_work']); 
+                
+                $ScopeofWorkFileData=array(
+                    "ebpSumFkid" => $summaryid,
+                    "modTabFkid" => Constants::RF_ANTENNA_MODTABID,
+                    "fileGrpFkid" => Constants::RF_ANTENNA_SOW_GRPID,
+                    "fileItemFkid"=> Constants::RF_ANTENNA_SOW_ITEMID,
+                );
+                $scopeOfWorkUploadedData=$this->fileUploadRepository->getUploadedFileData($ScopeofWorkFileData);
+                $this->setUploadFiles($i, 3, $i+9, $scopeOfWorkUploadedData, $sheet);           
+                $i=$i+6; 
+            }
+            if(isset($ebpRfAntennaConfig['page_completed_by'])){
+                $sheet->mergeCells("C".($i+2).":E".($i+2));
+                $sheet->mergeCells("F".($i+2).":H".($i+2));
+                $sheet->getCell('C'.$i+2)->setValue(ExcelConstant::COMPLETEDBY);
+                $sheet->getCell('F'.$i+2)->setValue($ebpRfAntennaConfig['page_completed_by']);               
+            }
+            if(isset($ebpRfAntennaConfig['userName'])){
+                $sheet->mergeCells("K".($i+2).":M".($i+2));
+                $sheet->mergeCells("N".($i+2).":P".($i+2));
+                $sheet->getCell('K'.$i+2)->setValue(ExcelConstant::NAME);
+                $sheet->getCell('N'.$i+2)->setValue($ebpRfAntennaConfig['userName']);           
+            }
+            if(isset($ebpRfAntennaConfig['date'])){
+                $sheet->mergeCells("C".($i+4).":E".($i+4));
+                $sheet->mergeCells("F".($i+4).":H".($i+4));
+                $sheet->getCell('C'.$i+4)->setValue(ExcelConstant::DATE);
+                $sheet->getCell('E'.$i+4)->setValue($ebpRfAntennaConfig['date']);           
+            } 
+            if(isset($ebpRfAntennaConfig['page_completed'])){ 
+                $sheet->mergeCells("K".($i+4).":M".($i+4));
+                $sheet->mergeCells("N".($i+4).":P".($i+4));
+                $sheet->getCell('K'.$i+4)->setValue(ExcelConstant::COMPLETED);
+                $page_completed = $ebpRfAntennaConfig['page_completed'];
+                $page_completed = ($page_completed) ? 'Yes' : 'No';      
+                $sheet->getCell('N'.$i+4)->setValue($page_completed);
+            }         
+            $sheet->getStyle('A2:A'.$i+6)->getBorders()->getRight()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+            $sheet->getStyle("B".($i+6).":AU".($i+6))->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+            $sheet->getStyle("AU2:AU".($i+6))->getBorders()->getRight()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM);
+            
+        }  
