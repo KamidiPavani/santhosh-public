@@ -1,10 +1,34 @@
-   if($ebpRfAntennaConfig && count($ebpRfAntennaConfig) > 0){
+  public function getEbpDownload($summaryid, $source, $destination)
+    {
+        $reader = new ReaderXlsx();
+        $sheetnames = [
+            'Antenna Systems(RF)',
+            'BTS Config(VL-RF)',
+            'COVERSHEET',
+            'RF_OBJECTIVES',
+            'CAR',
+            'PROPERTY',
+            'PLANNING',
+            'EME Restrictions',
+            'DESIGN',
+            'Non RF Misc and DC',
+            'RF BOM',
+            'Vendor BOM',
+            'Transmission Solution',
+            'Review Log'
+        ];
+        // $reader->setLoadAllSheets();
+        $reader->setLoadSheetsOnly($sheetnames);
+        $spreadsheet = $reader->load($destination);       
+        $ebpRfAntennaConfig = $this->em->getRepository(EbpRfAntennaConfig::class)->getEbpRfAntenna($summaryid);    
+    
+        if($ebpRfAntennaConfig && count($ebpRfAntennaConfig) > 0){
             $sheet = $spreadsheet->getSheetByName('Antenna Systems(RF)');
             $main_array = $existing =  $proposed = [];
             if(isset($ebpRfAntennaConfig['existing'])){              //dd($ebpRfAntennaConfig);
                 $existing = $this->getExistingAntennaGrid($ebpRfAntennaConfig['existing']);
-            } //dd($proposed);
-            // dd($existing[2]['tu_information'][9]);
+            } //dd($ebpRfAntennaConfig);
+            dd($existing);
             if(isset($ebpRfAntennaConfig['existing']['no_of_sectors']) && $ebpRfAntennaConfig['existing']['no_of_sectors']!= 0 ){
                 $i=33;
                 $sheet->mergeCells("C".($i+1).":AT".($i+1));    
@@ -49,18 +73,17 @@
             $column_index=0;
             $columns=['H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
           //dd($existing[0]['tu_information']);
-           $col_val=38;
-            if(isset($existing[0]['tu_information'])){
-                foreach($existing[0]['tu_information'] as $infor){
-                    $j=38;
-                    //$col_val=$j;
+            $start_position=38;
+            if(isset($existing[0]['tu_information'])){              
+                foreach($existing[0]['tu_information'] as $infor){  
+                    $j=$start_position;     
                     foreach($infor as $information){
                         $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
-                        $j++;  
-                        $col_val++;                                  
+                        $j++;                                                        
                     }   
                     $column_index++;
                 }
+                $start_position=$j+2;
             }
             $column_index=0;
             $i=$i+1;            
@@ -85,16 +108,16 @@
                         $i++;
                     }             
             } 
-            if(isset($existing[1]['tu_information'])){   
-                          
-                foreach($existing[1]['tu_information'] as $infor){    
-                    $j1=$j+2;   //72  104         
+            if(isset($existing[1]['tu_information'])){                                         
+                foreach($existing[1]['tu_information'] as $infor){  
+                    $j=$start_position;                                      
                     foreach($infor as $information){
-                        $sheet->getCell($columns[$column_index].$j1)->setValue($information);                 
-                        $j1++;                           
+                        $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                        $j++;                           
                     }
                     $column_index++;
                 }
+                $start_position=$j+2;
             }
             $column_index=0;
             $i=$i+1;      
@@ -118,16 +141,17 @@
                         $sheet->getCell('C'.$i)->setValue($infor);
                         $i++;
                     }
-                if(isset($existing[2]['tu_information'])){
-                    foreach($existing[2]['tu_information'] as $infor){
-                        $j2=$j1+2;
+                if(isset($existing[2]['tu_information'])){                  
+                    foreach($existing[2]['tu_information'] as $infor){ 
+                        $j=$start_position;                         
                         foreach($infor as $information){
-                            $sheet->getCell($columns[$column_index].$j2)->setValue($information);                 
-                            $j2++;                           
+                            $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                            $j++;                           
                         }
                         $column_index++;
                     }
-                }
+                    $start_position=$j+2;
+                }  
                 
             }  
             $column_index=0;
@@ -152,17 +176,18 @@
                         $sheet->mergeCells("C".($i).":G".($i));    
                         $sheet->getCell('C'.$i)->setValue($infor);
                         $i++;
-                    }
-                if(isset($existing[3]['tu_information'])){
-                    foreach($existing[3]['tu_information'] as $infor){
-                        $j3=$j2+2;
+                    }         
+                if(isset($existing[3]['tu_information'])){                  
+                    foreach($existing[3]['tu_information'] as $infor){ 
+                        $j=$start_position;                         
                         foreach($infor as $information){
-                            $sheet->getCell($columns[$column_index].$j3)->setValue($information);                 
-                            $j3++;                           
+                            $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                            $j++;                           
                         }
                         $column_index++;
                     }
-                }
+                    $start_position=$j+2;
+                } 
             }          
             
             if(isset($existing[4]['sector'])){
@@ -187,15 +212,16 @@
                         $sheet->getCell('C'.$i)->setValue($infor);
                         $i++;
                     }
-                if(isset($existing[4]['tu_information'])){
-                    foreach($existing[4]['tu_information'] as $infor){
-                        $j4=$j3+2;
+                if(isset($existing[4]['tu_information'])){                  
+                    foreach($existing[4]['tu_information'] as $infor){ 
+                        $j=$start_position;                         
                         foreach($infor as $information){
-                            $sheet->getCell($columns[$column_index].$j4)->setValue($information);                 
-                            $j4++;                           
+                            $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                            $j++;                           
                         }
                         $column_index++;
                     }
+                    $start_position=$j+2;
                 }
             }  
           
@@ -221,17 +247,18 @@
                         $sheet->mergeCells("C".($i).":G".($i));    
                         $sheet->getCell('C'.$i)->setValue($infor);
                         $i++;
-                    }
-                if(isset($existing[5]['tu_information'])){
-                    foreach($existing[5]['tu_information'] as $infor){
-                        $j5=$j4+2;
+                    }        
+                if(isset($existing[5]['tu_information'])){                  
+                    foreach($existing[5]['tu_information'] as $infor){ 
+                        $j=$start_position;                         
                         foreach($infor as $information){
-                            $sheet->getCell($columns[$column_index].$j5)->setValue($information);                 
-                            $j5++;                           
+                            $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                            $j++;                           
                         }
                         $column_index++;
                     }
-                }
+                    $start_position=$j+2;
+                } 
             } 
     
             if(isset($existing[6]['sector'])){
@@ -256,16 +283,17 @@
                         $sheet->mergeCells("C".($i).":G".($i));    
                         $sheet->getCell('C'.$i)->setValue($infor);
                         $i++;
-                    }
-                if(isset($existing[6]['tu_information'])){
-                    foreach($existing[6]['tu_information'] as $infor){
-                        $j6=$j5+2;
+                    }  
+                if(isset($existing[6]['tu_information'])){                  
+                    foreach($existing[6]['tu_information'] as $infor){ 
+                        $j=$start_position;                         
                         foreach($infor as $information){
-                            $sheet->getCell($columns[$column_index].$j6)->setValue($information);                 
-                            $j6++;                           
+                            $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                            $j++;                           
                         }
                         $column_index++;
                     }
+                    $start_position=$j+2;
                 }
             }  
             if(isset($ebpRfAntennaConfig['existing']['exst_plumb_uploaded_data'])){   
@@ -306,7 +334,7 @@
             if(isset($ebpRfAntennaConfig['proposed'])){
                 $proposed = $this->getProposedAntennaGrid($ebpRfAntennaConfig['proposed']);
             }
-
+                //dd($proposed);
             if(isset($ebpRfAntennaConfig['proposed']['no_of_sectors']) && $ebpRfAntennaConfig['proposed']['no_of_sectors']!= 0 ){              
                 $sheet->mergeCells("C".($i+1).":AT".($i+1));    
                 $sheet->getCell('C'.$i+1)->setValue(ExcelConstant::ProposedAntennaConfiguration);                       
@@ -347,18 +375,19 @@
                 }               
             }
             $column_index=0;
-            $columns=['H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
-          
+            $columns=['H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];      
+            $uploadDataCount=count($existingConnectionDiagram)+count($existingPlumbingDiagram)+7;            
+            $start_position=$start_position+$uploadDataCount;
             if(isset($proposed[0]['tu_information'])){
                 foreach($proposed[0]['tu_information'] as $infor){
-                    $uploadDataCount=count($existingConnectionDiagram)+count($existingPlumbingDiagram)+7;
-                    $j=$j+$uploadDataCount;
+                    $j=$start_position;  
                     foreach($infor as $information){
                         $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
                         $j++;                           
                     }
                     $column_index++;
                 }
+                $start_position=$j+2;
             }   
 
             if(isset($proposed[1]['sector'])){
@@ -386,16 +415,17 @@
                         $i++;
                     } 
             }
-           if(isset($proposed[1]['tu_information'])){                  
-                foreach($proposed[1]['tu_information'] as $infor){                   
-                    $j8=$j7+2;
+            if(isset($proposed[1]['tu_information'])){
+                foreach($proposed[1]['tu_information'] as $infor){
+                    $j=$start_position;  
                     foreach($infor as $information){
-                        $sheet->getCell($columns[$column_index].$j8)->setValue($information);                 
-                        $j8++;                           
+                        $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                        $j++;                           
                     }
                     $column_index++;
                 }
-            }          
+                $start_position=$j+2;
+            }                 
            
             if(isset($proposed[2]['sector'])){
                 $column_index=0;
@@ -421,17 +451,18 @@
                     $sheet->getCell('C'.$i)->setValue($infor);
                     $i++;
                 } 
-            }
-            if(isset($proposed[2]['tu_information'])){   
+            }   
+            if(isset($proposed[2]['tu_information'])){
                 foreach($proposed[2]['tu_information'] as $infor){
-                    $j9=$j8+2;
+                    $j=$start_position;  
                     foreach($infor as $information){
-                        $sheet->getCell($columns[$column_index].$j9)->setValue($information);                 
-                        $j9++;                           
+                        $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                        $j++;                           
                     }
                     $column_index++;
                 }
-             }
+                $start_position=$j+2;
+            }   
         
             if(isset($proposed[3]['sector'])){
                 $column_index=0;
@@ -457,17 +488,18 @@
                     $i++;
                 } 
             }
-            if(isset($proposed[3]['tu_information'])){  
-                foreach($proposed[3]['tu_information'] as $infor){  
-                    $j10=$j9+2;
+            if(isset($proposed[3]['tu_information'])){
+                foreach($proposed[3]['tu_information'] as $infor){
+                    $j=$start_position;  
                     foreach($infor as $information){
-                        $sheet->getCell($columns[$column_index].$j10)->setValue($information);                 
-                        $j10++;                           
+                        $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                        $j++;                           
                     }
                     $column_index++;
                 }
+                $start_position=$j+2;
             }
-        
+           
             if(isset($proposed[4]['sector'])){
                 $column_index=0;
                 $i=$i+1;
@@ -492,17 +524,18 @@
                         $i++;
                     } 
                 }
-                if(isset($proposed[4]['tu_information'])){  
-                    foreach($proposed[4]['tu_information'] as $infor){ 
-                        $j11=$j10+2;
+                if(isset($proposed[4]['tu_information'])){
+                    foreach($proposed[4]['tu_information'] as $infor){
+                        $j=$start_position;  
                         foreach($infor as $information){
-                            $sheet->getCell($columns[$column_index].$j11)->setValue($information);                 
-                            $j11++;                           
+                            $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                            $j++;                           
                         }
                         $column_index++;
                     }
+                    $start_position=$j+2;
                 }
-            
+                    
                 if(isset($proposed[5]['sector'])){
                     $column_index=0;
                     $i=$i+1;                    
@@ -526,16 +559,17 @@
                             $sheet->getCell('C'.$i)->setValue($infor);
                             $i++;
                         } 
-                    }
-                    if(isset($proposed[5]['tu_information'])){  
+                    }              
+                    if(isset($proposed[5]['tu_information'])){
                         foreach($proposed[5]['tu_information'] as $infor){
-                            $j12=$j11+2;
+                            $j=$start_position;  
                             foreach($infor as $information){
-                                $sheet->getCell($columns[$column_index].$j12)->setValue($information);                 
-                                $j12++;                           
+                                $sheet->getCell($columns[$column_index].$j)->setValue($information);                 
+                                $j++;                           
                             }
                             $column_index++;
                         }
+                        $start_position=$j+2;
                     }
             if(isset($ebpRfAntennaConfig['proposed']['prop_plumb_uploaded_data'])){   
                 //print_r("hicci");die;    empty array        
@@ -624,3 +658,10 @@
             
         }     
     
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->setPreCalculateFormulas(false);
+        ob_clean();
+        $writer->save($destination);
+        return true;
+        
+    }  
