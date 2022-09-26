@@ -1,0 +1,315 @@
+{
+  "ebp_sum_fkid": 83,
+  "sectors": [
+    {
+      "type": "proposed",
+      "no_of_sectors": 1,
+      "sector_name": "sector1",
+      "no_of_antennas": 1,
+      "antenna_info": [
+        {
+          "antenna_model": [
+            "RR2VV-6533D-R6"
+          ],
+          "no_of_tus": [
+            1
+          ]
+        }
+      ],
+      "list_info": [
+        {
+          "list_pkid": 1,
+          "list_name": "Port Number (Port-pair identities per Frequency)",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "Port 1 to 2"
+            }
+          ]
+        },
+        {
+          "list_pkid": 2,
+          "list_name": "Frequency",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "700"
+            }
+          ]
+        },
+        {
+          "list_pkid": 3,
+          "list_name": "Carrier Using Ports",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "Vodafone"
+            }
+          ]
+        },
+        {
+          "list_pkid": 4,
+          "list_name": "Orientation (degrees)",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "list_pkid": 5,
+          "list_name": "Electrical Down Tilt (degrees)",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "8"
+            }
+          ]
+        },
+        {
+          "list_pkid": 6,
+          "list_name": "Mechanical Tilt (degrees)",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "list_pkid": 7,
+          "list_name": "Mounting Height (Metres above ground level)",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "40.27"
+            }
+          ]
+        },
+        {
+          "list_pkid": 8,
+          "list_name": "RET on Antenna",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "Yes"
+            }
+          ]
+        },
+        {
+          "list_pkid": 9,
+          "list_name": "Feeder Size",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": null
+            }
+          ]
+        },
+        {
+          "list_pkid": 10,
+          "list_name": "Feeder Type",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": null
+            }
+          ]
+        },
+        {
+          "list_pkid": 11,
+          "list_name": "Feeder Length (metres)",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "list_pkid": 12,
+          "list_name": "Re-used Feeder",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": null
+            }
+          ]
+        },
+        {
+          "list_pkid": 13,
+          "list_name": "Tail System (internal)",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": null
+            }
+          ]
+        },
+        {
+          "list_pkid": 14,
+          "list_name": "Tail System (internal) Total Length",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "list_pkid": 15,
+          "list_name": "Tail System (internal) Total Number",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "0"
+            }
+          ]
+        },
+        {
+          "list_pkid": 16,
+          "list_name": "Tail System (external)",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "1/2\" Superflex"
+            }
+          ]
+        },
+        {
+          "list_pkid": 17,
+          "list_name": "Tail System (external) Total Length",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "3"
+            }
+          ]
+        },
+        {
+          "list_pkid": 18,
+          "list_name": "Tail System (external) Total Number",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "list_pkid": 19,
+          "list_name": "Combiner/Filter 1",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "DBC0055F1V25-2"
+            }
+          ]
+        },
+        {
+          "list_pkid": 20,
+          "list_name": "Combiner/Filter 2",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": null
+            }
+          ]
+        },
+        {
+          "list_pkid": 21,
+          "list_name": "Combiner/Filter 3",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": null
+            }
+          ]
+        },
+        {
+          "list_pkid": 22,
+          "list_name": "Combiner/Filter 4",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": null
+            }
+          ]
+        },
+        {
+          "list_pkid": 23,
+          "list_name": "Combiner/Filter 5",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": null
+            }
+          ]
+        },
+        {
+          "list_pkid": 24,
+          "list_name": "DC Stops",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": null
+            }
+          ]
+        },
+        {
+          "list_pkid": 25,
+          "list_name": "TMA",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": null
+            }
+          ]
+        },
+        {
+          "list_pkid": 26,
+          "list_name": "Total Rack To Power (W)(per Carrier)",
+          "tus": [
+            {
+              "name": "RR2VV-6533D-R6",
+              "value": "40"
+            }
+          ]
+        }
+      ],
+      "existing_list_info": [
+        {
+          "list_pkid": 2,
+          "list_name": "Frequency",
+          "tus": [
+            {
+              "name": "0709/U-65-17/18-DV8C-B1",
+              "value": "700"
+            }
+          ]
+        },
+        {
+          "list_pkid": 1301,
+          "list_name": "Antenna Gain dBi",
+          "tus": [
+            {
+              "name": "0709/U-65-17/18-DV8C-B1",
+              "value": "11"
+            }
+          ]
+        },
+        {
+          "list_pkid": 1303,
+          "list_name": "Existing System loss,BTS to Antenna(dB)",
+          "tus": [
+            {
+              "name": "0709/U-65-17/18-DV8C-B1",
+              "value": 1.6529940238806682
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
