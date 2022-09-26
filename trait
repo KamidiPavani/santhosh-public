@@ -1,0 +1,1178 @@
+<?php
+
+namespace App\Traits;
+
+use App\Helpers\Constants;
+use Symfony\Component\Console\Input\Input;
+use App\Service\EBPRfAntennaConfigService;
+use Doctrine\ORM\EntityManagerInterface;
+
+trait RFNSATrait{      
+   
+      public function validateRFNSAData($input = []){
+           //dd($input);
+            $sectors = $input['sectors'];
+            foreach($sectors as $sector){
+                  /* Antenna Information Validation */
+                  if($sector['no_of_antennas'] != count($sector['antenna_info'][0]['antenna_model'])){
+                        return false;
+                  }
+
+                  /*Antenna Information Count Validation */
+                  $no_of_tus = 0;
+                  foreach($sector['antenna_info'][0]['no_of_tus'] as $tus_count){
+                        $no_of_tus += $tus_count;
+                  }
+                  foreach($sector['list_info'] as $list_infor){
+                        if($no_of_tus != count($list_infor['tus'])){
+                              return false;
+                        }
+                  }
+                  //dd($sector['list_info']);
+                 //dd($sector['list_info'][1]['tus']);
+            }
+            return true;
+      }    
+      public function ResetRFNSAData(&$input){
+            if(isset($input['sectors'])) {
+                  $sector_index = 0;
+                  foreach($input['sectors'] as $sector) {
+                        if(isset($sector['list_info'])) {
+                              $list_index =  0;
+                              foreach($sector['list_info'] as $list_info){
+                                    $tu_index = 0;
+                                    foreach($list_info['tus'] as $tu) {
+                                          //dd($list_info['list_name']);
+                                          if(trim($tu['value']) == '' || $tu['value'] == null ) {
+                                                $input['sectors'][$sector_index]['list_info'][$list_index]['tus'][$tu_index]['value'] = $this->SetDefaultValue($list_info['list_name']) ;
+                                          }
+                                          $tu_index++;
+                                    }
+                                    $list_index++;
+                              }
+                        }
+                        $sector_index++;
+                  }
+            }
+      }
+      public function SetDefaultValue($list_name=''){
+           
+            switch($list_name){
+                  default:
+                        $default_value=0;
+                        break;
+                  //print_r("sdc");
+                  // case Constants::EXIST_TOTAL_RACK_TO_POWER:
+                  // case Constants::PROPOSED_TOTAL_RACK_TO_POWER:
+                  //       $default_value="";
+                        break;
+                  case Constants::EXIST_FREQUENCY:
+                  case Constants::PROPOSED_FREQUENCY:
+                  case Constants::EXIST_CARRIER_USING_PORTS:
+                  case Constants::PROPOSED_CARRIER_USING_PORTS:
+                  case Constants::EXIST_RE_USED_FEEDER:
+                  case Constants::PROPOSED_RE_USED_FEEDER:
+                  case Constants::PROPOSED_TMA:               
+                  case Constants::PROPOSED_COMBINER_FILTER_1:               
+                  case Constants::PROPOSED_COMBINER_FILTER_2:               
+                  case Constants::PROPOSED_COMBINER_FILTER_3:             
+                  case Constants::PROPOSED_COMBINER_FILTER_4:                  
+                  case Constants::PROPOSED_COMBINER_FILTER_5:
+                        $default_value='N/A';
+                        break; 
+                  case Constants::EXIST_RET_ON_ANTENNA:
+                  case Constants::PROPOSED_RET_ON_ANTENNA:                  
+                        $default_value='No';
+                        break;              
+                  case Constants::EXIST_FEEDER_SIZE:
+                  case Constants::PROPOSED_FEEDER_SIZE:
+                  case Constants::EXIST_FEEDER_TYPE:
+                  case Constants::PROPOSED_FEEDER_TYPE:
+                  case Constants::EXIST_TAIL_SYS_INTERNAL:
+                  case Constants::PROPOSED_TAIL_SYS_INTERNAL:                      
+                  case Constants::EXIST_TAIL_SYS_EXTERNAL:
+                  case Constants::PROPOSED_TAIL_SYS_EXTERNAL:
+                  case Constants::EXIST_COMBINER_FILTER_1:        
+                  case Constants::EXIST_COMBINER_FILTER_2:     
+                  case Constants::EXIST_COMBINER_FILTER_3:      
+                  case Constants::EXIST_COMBINER_FILTER_4:        
+                  case Constants::EXIST_COMBINER_FILTER_5:              
+                  case Constants::EXIST_TMA:                 
+                        $default_value='None';
+                        break;              
+                  case Constants::EXIST_DC_STOPS:
+                  case Constants::PROPOSED_DC_STOPS:
+                        $default_value=0;
+                        break;
+               
+            }
+            return $default_value;
+      }
+      public function appendingExistingInfor(&$input){
+            if(isset($input['sectors'])) {
+                  $sector_index = 0;
+                  foreach($input['sectors'] as $sector) {
+                        if(isset($sector['existing_list_info'])) {
+                              $list_index =  count($sector['list_info']);
+                              foreach($sector['existing_list_info'] as $list_info){
+                                    $input['sectors'][$sector_index]['list_info'][$list_index]['list_pkid'] = $list_info['list_pkid'];
+                                    $input['sectors'][$sector_index]['list_info'][$list_index]['list_name'] = 'EXISTING_INFOR_'.$list_info['list_name'];
+                                    $input['sectors'][$sector_index]['list_info'][$list_index]['tus'] = $list_info['tus'];
+                                    $list_index++;
+                              }
+                        }
+                        $sector_index++;
+                  }
+            }
+      }
+      public function matchInformation($lookup_value , $lookup_array = []){
+            $req_value = 0;
+            foreach($lookup_array as $value){
+                  if($value == $lookup_value){
+                        break;
+                        $req_value++;                      
+                  }
+                  $req_value++;
+            }
+            return $req_value;
+      }
+      public function getFormulaBasedValues($antenna_tu = '', $list_infor = [], $formula_req_elements = []){
+            $req_array = [];
+            foreach($formula_req_elements as $formula_list_name){
+                  foreach($list_infor as $list_item){
+                        if($list_item['list_name'] == $formula_list_name){
+                              $loop = 0;
+                              foreach($list_item['tus'] as $dev){
+                                    if($dev['name'].','.$loop == $antenna_tu){
+                                          $req_array[$formula_list_name] = $dev['value'] ;
+                                          break;
+                                    }
+                                    $loop++;
+                              }
+                        }
+                  }
+            }
+            return $req_array;
+      } 
+      public function getFormulaBasedCalculatedValues($antenna_tu = '', $existed_calculated_values = [], $formula_dependent_req_elements = []){
+            $req_array = [];
+            foreach($formula_dependent_req_elements as $formula_calc_list_name){    //print_r($formula_dependent_req_elements);die;
+                  foreach($existed_calculated_values as $element){// print_r($existed_calculated_values);die;
+                        if($element['list_name'] ==  $formula_calc_list_name ){                            
+                              $loop = 0; 
+                              foreach($element['tus'] as $dev){
+                                    if($dev['name'].','.$loop == $antenna_tu){
+                                          $req_array[$formula_calc_list_name] = $dev['value'];
+                                          break;
+                                    }
+                                    $loop++;
+                              }
+                        
+                        }
+                  }
+            }
+            return $req_array;
+      }
+      public function excelVLookUpCalculation($searching_for, $searching_column_name, $required_col_name, $data_list = []){
+            $response = 'N/A';
+        //print_r($searching_for);die;//AVA5-50
+       // print_r($searching_column_name);die;//frequency
+        // print_r($required_col_name);die; //850  
+       //dd($data_list);die;
+
+            foreach($data_list as $data){
+                  if(strtolower(trim($data[$searching_column_name])) == strtolower(trim($searching_for))){
+                       //dd($data);
+                        return $data[$required_col_name];
+                  }
+            }
+
+            return $response;
+      }
+      public function explodeAntennaData($antenna_tu){
+            $antenna_tu=explode(",",$antenna_tu);//print_r($antenna_tu[0]);die;     
+            return isset($antenna_tu[0])?$antenna_tu[0]:null;
+      }
+      //Existing Connector Loss----------------For existing 
+      public function ExistingConnectorLossCalculator($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {                       
+            $formula_req_elements = [Constants::EXIST_FEEDER_LENGTH,Constants::EXIST_TAIL_SYS_INTERNAL,Constants::EXIST_FREQUENCY,
+                                     Constants::EXIST_TAIL_SYS_INTERNAL_TOT_NUM,Constants::EXIST_TAIL_SYS_EXTERNAL,
+                                     Constants::EXIST_TAIL_SYS_EXTERNAL_TOT_NUM,Constants::EXIST_FEEDER_TYPE];
+           
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);            
+            //return $req_array[Constants::EXIST_FEEDER_LENGTH];
+            $sub_formula_1 = $sub_formula_2 = $sub_formula_3 = $sub_formula_4 = $sub_formula_5 = '';
+            //print_r($req_array);die;
+            //dd([Constants::EXIST_FREQUENCY]);
+           foreach($req_array as $key=>$value){
+                  if($value=='N/A' || $value=='None'){
+                        return 0;
+                  }
+           }
+            if($req_array[Constants::EXIST_TAIL_SYS_INTERNAL] == 'None'){
+                  $sub_formula_1 = 0;
+            } else {
+                  //print_r($req_array);die;
+                  $sub_formula_1 = (double)(0.05*sqrt($req_array[Constants::EXIST_FREQUENCY]/1000))*(double)($req_array[Constants::EXIST_TAIL_SYS_INTERNAL_TOT_NUM]*2);
+            }
+
+            if($req_array[Constants::EXIST_TAIL_SYS_EXTERNAL] == 'None'){
+                  $sub_formula_2 = 0;
+            } else {
+                  $sub_formula_2 = (double)(0.05*sqrt($req_array[Constants::EXIST_FREQUENCY]/1000))*(double)($req_array[Constants::EXIST_TAIL_SYS_EXTERNAL_TOT_NUM]*2);
+            }
+
+            if($req_array[Constants::EXIST_TAIL_SYS_INTERNAL] == 'None'){
+                  $sub_formula_3 = 0;
+            } else {
+                  $sub_formula_3 = (double)(0.05*sqrt($req_array[Constants::EXIST_FREQUENCY]/1000))*(double)($req_array[Constants::EXIST_TAIL_SYS_INTERNAL_TOT_NUM]*2);
+            }
+
+            if($req_array[Constants::EXIST_TAIL_SYS_EXTERNAL] == 'None'){
+                  $sub_formula_4 = 0;
+            } else {
+                  $sub_formula_4 = (double)(0.05*sqrt($req_array[Constants::EXIST_FREQUENCY]/1000))*(double)($req_array[Constants::EXIST_TAIL_SYS_EXTERNAL_TOT_NUM]*2);
+            }
+
+            if($req_array[Constants::EXIST_FEEDER_TYPE] == 'None'){
+                  $sub_formula_5 = 0;
+            } else {
+                  $sub_formula_5 =(double)(0.05*sqrt($req_array[Constants::EXIST_FREQUENCY]/1000))*(double)(2);
+            }
+
+            if($req_array[Constants::EXIST_FEEDER_LENGTH] == 0){
+                  return ((double)$sub_formula_1 +(double)$sub_formula_2);
+            } else {
+                  return ((double)$sub_formula_3 +(double)$sub_formula_4 +(double)$sub_formula_5);
+            }
+
+      }
+      //Existing Antenna Gain dBi---------------------------------------------For existing
+      public function ExistingAntennaGain($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {            
+            $formula_req_elements = [Constants::EXIST_FREQUENCY];
+            //print_r($formula_req_elements);//die;
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);           
+            $formula_dependent_req_elements = [];           
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+         
+            if($req_array[Constants::EXIST_FREQUENCY]==700){
+                  $value=0;
+            }elseif($req_array[Constants::EXIST_FREQUENCY]==850){
+                  $value=1;
+            }elseif($req_array[Constants::EXIST_FREQUENCY]==900){
+                  $value=2;
+            }elseif($req_array[Constants::EXIST_FREQUENCY]==1800){
+                  $value=3;
+            }elseif($req_array[Constants::EXIST_FREQUENCY]==2100){
+                  $value=4;
+            }elseif($req_array[Constants::EXIST_FREQUENCY]==2300){
+                  $value=5;
+            }elseif($req_array[Constants::EXIST_FREQUENCY]==2600){
+                  $value=6;
+            }elseif($req_array[Constants::EXIST_FREQUENCY]==3600){
+                  $value=7;
+            }
+            if($req_array[Constants::EXIST_FREQUENCY] == 'N/A'){
+                  return 'N/A';
+            }
+            else
+            {                 
+                  $bml_ext_ant_data=$this->ebp_service->getExtAntData($this->explodeAntennaData($antenna_tu));//print_r($bml_ext_ant_data);die;
+                  return isset($bml_ext_ant_data[$value]['paramValue'])?$bml_ext_ant_data[$value]['paramValue']:'N/A';
+                                   
+                  // $antenna_tu = 'RRV4-65B-R6';//'RRV4-65B-R6-EC';//
+                  // $value1=$this->excelVLookUpCalculation($antenna_tu,'preferredMaterial','paramValue',$bml_ext_ant_data);               
+                  // dd($value1);
+                   //return $value;
+            }
+      }
+      //Existing System loss (BTS to Antenna)(dB)---------------------------------------------For existing 
+      public function ExistingSystemLoss($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {            
+            $frequency_list=[700,850,900,1800,2100,2300,2600,3600];
+            $formula_req_elements = [Constants::EXIST_FREQUENCY,Constants::EXIST_FEEDER_TYPE,Constants::EXIST_FEEDER_LENGTH,
+            Constants::EXIST_TAIL_SYS_INTERNAL,Constants::EXIST_TAIL_SYS_INTERNAL_TOT_LENGTH,Constants::EXIST_TAIL_SYS_EXTERNAL,
+            Constants::EXIST_TAIL_SYS_EXTERNAL_TOT_LENGTH,Constants::EXIST_TMA,Constants::EXIST_DC_STOPS,Constants::EXIST_COMBINER_FILTER_1,Constants::EXIST_COMBINER_FILTER_2,
+            Constants::EXIST_COMBINER_FILTER_3,Constants::EXIST_COMBINER_FILTER_4,Constants::EXIST_COMBINER_FILTER_5];
+            
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+
+            $formula_dependent_req_elements = [Constants::EXIST_CONNECTOR_LOSS];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+                  //print_r($req_array);
+           if($req_array[Constants::EXIST_FREQUENCY] == '0.1')
+           {
+           //print_r("hi");die;
+           return;
+           // $req_array[Constants::EXIST_FREQUENCY] == 'N/A';
+           }
+          
+           if($req_array[Constants::EXIST_FREQUENCY] == 'N/A'){
+                       return 'N/A';
+           } else {
+                 $sub_formula_1 = $sub_formula_2 = $sub_formula_3 = $sub_formula_4 = $sub_formula_5 = $sub_formula_6 = $sub_formula_7 = $sub_formula_8 = $sub_formula_9=  $sub_formula_10= $sub_formula_11 = $sub_formula_12 ='';           
+                 if($req_array[Constants::EXIST_FEEDER_TYPE] == 'None'){
+                       $sub_formula_2=0;
+                 } else {
+                       //print_r($req_array[Constants::EXIST_FREQUENCY]);
+                       $column_index=$this->matchInformation($req_array[Constants::EXIST_FREQUENCY],$frequency_list);
+                       //dd($column_index);
+                       $column_name=$frequency_list[$column_index];//dd($column_name);
+                       $bml_ex_fdr_tbl=$this->ebp_service->getExFdrTbl();
+                      //dd($bml_ex_fdr_tbl); die;     
+                     //dd($req_array[Constants::EXIST_FEEDER_TYPE]);
+                       $value=$this->excelVLookUpCalculation($req_array[Constants::EXIST_FEEDER_TYPE],'frequency',$column_name,$bml_ex_fdr_tbl);
+                      //echo("shiny".$value.'<br>'); 
+                     // echo(round($value,2) . "<br>");
+                       $sub_formula_2=(double)$value*(double)$req_array[Constants::EXIST_FEEDER_LENGTH];
+                       //dd($value);                       
+                 }
+                 if($req_array[Constants::EXIST_TAIL_SYS_INTERNAL]=='None'){
+                        $sub_formula_3=0;
+                 } else {
+                       $column_index=$this->matchInformation($req_array[Constants::EXIST_FREQUENCY],$frequency_list);
+                       //dd($column_index);
+                       $column_name=$frequency_list[$column_index];//dd($column_name);
+                       $bml_tail_atten_tbl=$this->ebp_service->getTailAttenTbl();
+                       //dd($bml_new_fdr_tbl);// dd($req_array[Constants::EXIST_FEEDER_TYPE]);
+                        $value=$this->excelVLookUpCalculation($req_array[Constants::EXIST_TAIL_SYS_INTERNAL],'frequency',$column_name,$bml_tail_atten_tbl);
+                        $sub_formula_3=(double)$value*(double)$req_array[Constants::EXIST_TAIL_SYS_INTERNAL_TOT_LENGTH];                 
+                        //dd($value);
+                 }
+                 if($req_array[Constants::EXIST_TAIL_SYS_EXTERNAL]=='None'){
+                        $sub_formula_4=0;
+                 } else {
+                       $column_index=$this->matchInformation($req_array[Constants::EXIST_FREQUENCY],$frequency_list);
+                       //dd($column_index);
+                       $column_name=$frequency_list[$column_index];//dd($column_name);
+                       $bml_new_fdr_tbl=$this->ebp_service->getTailAttenTbl();
+                       //dd($bml_new_fdr_tbl);// dd($req_array[Constants::EXIST_FEEDER_TYPE]);
+                        $value=$this->excelVLookUpCalculation($req_array[Constants::EXIST_TAIL_SYS_EXTERNAL],'frequency',$column_name,$bml_new_fdr_tbl);
+                        $sub_formula_4=(double)$value*(double)$req_array[Constants::EXIST_TAIL_SYS_EXTERNAL_TOT_LENGTH];                 
+                        //dd($value);
+                 }
+                 $sub_formula_5=$req_array[Constants::EXIST_CONNECTOR_LOSS];
+                
+                 try{
+                       $bml_ex_tma_tbl=$this->ebp_service->getExTmaTbl();
+                       //dd($bml_ex_tma_tbl);
+                       $sub_formula_6=$this->excelVLookUpCalculation($req_array[Constants::EXIST_TMA],'preferredMaterial','paramValue',$bml_ex_tma_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_6=0;
+                 }
+                 if($req_array[Constants::EXIST_DC_STOPS]==0){
+                        $sub_formula_7=0;
+                 } else {                      
+                        $sub_formula_7=$req_array[Constants::EXIST_DC_STOPS]*0.1;                 
+                        //dd($value);
+                 }
+                 try{
+                       $bml_ex_comb_tbl=$this->ebp_service->getExCombTbl();
+                       //dd($bml_ex_comb_tbl);
+                       $sub_formula_8=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_1],'preferredMaterial','paramValue',$bml_ex_comb_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_8=0;
+                 }
+                 try{
+                       $bml_ex_comb_tbl=$this->ebp_service->getExCombTbl();
+                       //dd($bml_ex_comb_tbl);
+                       $sub_formula_9=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_2],'preferredMaterial','paramValue',$bml_ex_comb_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_9=0;
+                 }
+                 try{
+                       $bml_ex_comb_tbl=$this->ebp_service->getExCombTbl();
+                       //dd($bml_ex_comb_tbl);
+                       $sub_formula_10=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_3],'preferredMaterial','paramValue',$bml_ex_comb_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_10=0;
+                 }
+                 try{
+                       $bml_ex_comb_tbl=$this->ebp_service->getExCombTbl();
+                       //dd($bml_ex_comb_tbl);
+                       $sub_formula_11=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_4],'preferredMaterial','paramValue',$bml_ex_comb_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_11=0;
+                 }
+                 try{
+                      $bml_ex_comb_tbl=$this->ebp_service->getExCombTbl();
+                       //dd($bml_ex_comb_tbl);
+                       $sub_formula_12=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_5],'preferredMaterial','paramValue',$bml_ex_comb_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_12=0;
+                 }
+                        //      $sub_formula_1=$sub_formula_2 + $sub_formula_3 + $sub_formula_4 + $sub_formula_5 + $sub_formula_6 + $sub_formula_7 + $sub_formula_8 + $sub_formula_9 + $sub_formula_10 + $sub_formula_11 + $sub_formula_12;   
+                 print_r("2".$sub_formula_2.",3".$sub_formula_3.",4".$sub_formula_4.",5".$sub_formula_5.",6".$sub_formula_2.",7".$sub_formula_3."4".$sub_formula_4."5".$sub_formula_5);die;
+                        //dd($sub_formula_2);die;
+                 $sub_formula_1=(double)$sub_formula_2 + (double)$sub_formula_3 +(double) $sub_formula_4 +(double) $sub_formula_5 + (double)$sub_formula_6 + (double)$sub_formula_7 + (double)$sub_formula_8 + (double)$sub_formula_9 +(double)$sub_formula_10 + (double)$sub_formula_11 + (double)$sub_formula_12;                   
+                 return $sub_formula_1;
+                     //dd($sub_formula_1);
+            }
+      }
+      //Existing Power at the input of Antenna (dBm) (System Losses included)/STAD----------------For existing
+      public function ExistingPowerAntenna($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {         
+            $formula_req_elements = [Constants::EXIST_FREQUENCY,Constants::EXIST_TOTAL_RACK_TO_POWER];
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+
+            $formula_dependent_req_elements = [Constants::EXIST_EXISTING_SYS_LOSS];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+                  //dd($req_array);
+      
+            if($req_array[Constants::EXIST_FREQUENCY] == 'N/A'){
+                  return 'N/A';
+            } else {
+                  if($req_array[Constants::EXIST_EXISTING_SYS_LOSS]== 'N/A')
+                  {
+                        $req_array[Constants::EXIST_EXISTING_SYS_LOSS]=0; 
+                  }
+                  if($req_array[Constants::EXIST_TOTAL_RACK_TO_POWER]== 0)
+                  {
+                        return 'N/A';
+                  }     
+                  return (10*log10((double)($req_array[Constants::EXIST_TOTAL_RACK_TO_POWER])/0.001)-(double)($req_array[Constants::EXIST_EXISTING_SYS_LOSS]));
+            }
+      }
+     //Existing EIRP (dBm)----------------------------------------------For existing
+      public function ExistingEIRPCalculator($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {           
+            $formula_req_elements = [Constants::EXIST_FREQUENCY];
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+
+            $formula_dependent_req_elements = [Constants::EXIST_ANTENNA_GAIN_DBI,Constants::EXIST_POWER_AT_THE_INPUT_OF_ANTENNA];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+            //dd($req_array);
+            if($req_array[Constants::EXIST_FREQUENCY] == 'N/A'){
+                  return 'N/A';
+            } else {
+                  return (double)($req_array[Constants::EXIST_POWER_AT_THE_INPUT_OF_ANTENNA])+(double)($req_array[Constants::EXIST_ANTENNA_GAIN_DBI]);
+            }
+      }
+      //////////////////////////////////////////////////Proposed//////////////////////////////////
+      //Proposed Connector Loss
+      public function ProposedConnectorLossCalculator($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {        
+            $formula_req_elements = [Constants::PROPOSED_FEEDER_LENGTH,Constants::PROPOSED_TAIL_SYS_INTERNAL,Constants::PROPOSED_FREQUENCY,
+                                     Constants::PROPOSED_TAIL_SYS_INTERNAL_TOT_NUM,Constants::PROPOSED_TAIL_SYS_EXTERNAL,
+                                     Constants::PROPOSED_TAIL_SYS_EXTERNAL_TOT_NUM,Constants::PROPOSED_FEEDER_TYPE];
+           
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+            
+
+            $sub_formula_1 = $sub_formula_2 = $sub_formula_3 = $sub_formula_4 = $sub_formula_5 = '';
+            
+            //dd([Constants::EXIST_TAIL_SYS_INTERNAL]);
+            if($req_array[Constants::PROPOSED_TAIL_SYS_INTERNAL] == 'None'){
+                  $sub_formula_1 = 0;
+            } else {
+                  $sub_formula_1 = (0.05*sqrt($req_array[Constants::PROPOSED_FREQUENCY]/1000))*($req_array[Constants::PROPOSED_TAIL_SYS_INTERNAL_TOT_NUM]*2);
+            }
+
+            if($req_array[Constants::PROPOSED_TAIL_SYS_EXTERNAL] == 'None'){
+                  $sub_formula_2 = 0;
+            } else {
+                  $sub_formula_2 = (0.05*sqrt($req_array[Constants::PROPOSED_FREQUENCY]/1000))*($req_array[Constants::PROPOSED_TAIL_SYS_EXTERNAL_TOT_NUM]*2);
+            }
+
+            if($req_array[Constants::PROPOSED_TAIL_SYS_INTERNAL] == 'None'){
+                  $sub_formula_3 = 0;
+            } else {
+                  $sub_formula_3 = (0.05*sqrt($req_array[Constants::PROPOSED_FREQUENCY]/1000))*($req_array[Constants::PROPOSED_TAIL_SYS_INTERNAL_TOT_NUM]*2);
+            }
+
+            if($req_array[Constants::PROPOSED_TAIL_SYS_EXTERNAL] == 'None'){
+                  $sub_formula_4 = 0;
+            } else {
+                  $sub_formula_4 = (0.05*sqrt($req_array[Constants::PROPOSED_FREQUENCY]/1000))*($req_array[Constants::PROPOSED_TAIL_SYS_EXTERNAL_TOT_NUM]*2);
+            }
+
+            if($req_array[Constants::PROPOSED_FEEDER_TYPE] == 'None'){
+                  $sub_formula_5 = 0;
+            } else {
+                  $sub_formula_5 = (0.05*sqrt($req_array[Constants::PROPOSED_FREQUENCY]/1000))*(2);
+            }
+
+            if($req_array[Constants::PROPOSED_FEEDER_LENGTH] == 0){
+                  return ((double)$sub_formula_1 + (double)$sub_formula_2);
+            } else {
+                  return ((double)$sub_formula_3 + (double)$sub_formula_4 +(double) $sub_formula_5);
+            }
+
+      }
+      //Proposed Antenna Gain dBi
+      public function ProposedAntennaGain($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {    
+            $formula_req_elements = [Constants::PROPOSED_FREQUENCY];
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+           // print_r($req_array);//die;
+            $formula_dependent_req_elements = [];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+         
+            if($req_array[Constants::PROPOSED_FREQUENCY]==700){               
+                  $value=0;
+            }elseif($req_array[Constants::PROPOSED_FREQUENCY]==850){
+                  $value=1;
+            }elseif($req_array[Constants::PROPOSED_FREQUENCY]==900){
+                  $value=2;
+            }elseif($req_array[Constants::PROPOSED_FREQUENCY]==1800){
+                  $value=3;
+            }elseif($req_array[Constants::PROPOSED_FREQUENCY]==2100){
+                  $value=4;
+            }elseif($req_array[Constants::PROPOSED_FREQUENCY]==2300){
+                  $value=5;
+            }elseif($req_array[Constants::PROPOSED_FREQUENCY]==2600){
+                  $value=6;
+            }elseif($req_array[Constants::PROPOSED_FREQUENCY]==3600){
+                  $value=7;
+            }
+            if($req_array[Constants::PROPOSED_FREQUENCY] == 'N/A'){
+                  return 'N/A';
+            }
+            else          
+            {
+                  $bml_new_ant_data=$this->ebp_service->getNewAntData($this->explodeAntennaData($antenna_tu));//dd($bml_new_ant_data);
+                  return isset($bml_new_ant_data[$value]['paramValue'])?$bml_new_ant_data[$value]['paramValue']:'N/A';      
+            }
+      }
+      // Proposed DL System loss (BTS to Antenna)(dB)
+      public function ProposedDLSystemLoss($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {            
+             $frequency_list=[700,850,900,1800,2100,2300,2600,3600];
+             $formula_req_elements = [Constants::EXIST_FREQUENCY,Constants::EXIST_FEEDER_TYPE,Constants::EXIST_FEEDER_LENGTH,
+             Constants::EXIST_TAIL_SYS_INTERNAL,Constants::EXIST_TAIL_SYS_INTERNAL_TOT_LENGTH,Constants::EXIST_TAIL_SYS_EXTERNAL,
+             Constants::EXIST_TAIL_SYS_EXTERNAL_TOT_LENGTH,Constants::EXIST_TMA,Constants::EXIST_DC_STOPS,Constants::EXIST_COMBINER_FILTER_1,Constants::EXIST_COMBINER_FILTER_2,
+             Constants::EXIST_COMBINER_FILTER_3,Constants::EXIST_COMBINER_FILTER_4,Constants::EXIST_COMBINER_FILTER_5];
+             
+             $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+ 
+             $formula_dependent_req_elements = [Constants::EXIST_CONNECTOR_LOSS];
+             $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+                   //print_r($req_array);
+            if($req_array[Constants::EXIST_FREQUENCY] == '0.1')
+            {            
+            return;           
+            }
+            if($req_array[Constants::EXIST_FREQUENCY] == 'N/A'){
+                        return 'N/A';
+            } else {
+                  $sub_formula_1 = $sub_formula_2 = $sub_formula_3 = $sub_formula_4 = $sub_formula_5 = $sub_formula_6 = $sub_formula_7 = $sub_formula_8 = $sub_formula_9=  $sub_formula_10= $sub_formula_11 = $sub_formula_12 ='';           
+                  if($req_array[Constants::EXIST_FEEDER_TYPE] == 'None'){
+                        $sub_formula_2=0;
+                  } else {
+                        //dd($req_array[Constants::EXIST_FREQUENCY]);
+                        $column_index=$this->matchInformation($req_array[Constants::EXIST_FREQUENCY],$frequency_list);
+                        //dd($column_index);
+                        $column_name=$frequency_list[$column_index];//dd($column_name);
+                        $bml_new_fdr_tbl=$this->ebp_service->getNewFdrTbl();
+                       //dd($bml_new_fdr_tbl); 
+                       //dd($req_array[Constants::EXIST_FEEDER_LENGTH]);
+                        $value=$this->excelVLookUpCalculation($req_array[Constants::EXIST_FEEDER_TYPE],'frequency',$column_name,$bml_new_fdr_tbl);
+                       //dd($value); 
+                        $sub_formula_2=(double)$value*(double)$req_array[Constants::EXIST_FEEDER_LENGTH];
+                        //dd($value);                       
+                  }
+                  if($req_array[Constants::EXIST_TAIL_SYS_INTERNAL]=='None'){
+                        $sub_formula_3=0;
+                  } else {
+                        $column_index=$this->matchInformation($req_array[Constants::EXIST_FREQUENCY],$frequency_list);
+                        //dd($column_index);
+                        $column_name=$frequency_list[$column_index];//dd($column_name);
+                        $bml_tail_atten_tbl=$this->ebp_service->getTailAttenTbl();
+                        //dd($bml_new_fdr_tbl);// dd($req_array[Constants::EXIST_FEEDER_TYPE]);
+                         $value=$this->excelVLookUpCalculation($req_array[Constants::EXIST_TAIL_SYS_INTERNAL],'frequency',$column_name,$bml_tail_atten_tbl);
+                         $sub_formula_3=(double)$value*(double)$req_array[Constants::EXIST_TAIL_SYS_INTERNAL_TOT_LENGTH];                 
+                         //dd($value);
+                  }
+                  if($req_array[Constants::EXIST_TAIL_SYS_EXTERNAL]=='None'){
+                        $sub_formula_4=0;
+                  } else {
+                        $column_index=$this->matchInformation($req_array[Constants::EXIST_FREQUENCY],$frequency_list);
+                        //dd($column_index);
+                        $column_name=$frequency_list[$column_index];//dd($column_name);
+                        $bml_new_fdr_tbl=$this->ebp_service->getTailAttenTbl();
+                        //dd($bml_new_fdr_tbl);// dd($req_array[Constants::EXIST_FEEDER_TYPE]);
+                         $value=$this->excelVLookUpCalculation($req_array[Constants::EXIST_TAIL_SYS_EXTERNAL],'frequency',$column_name,$bml_new_fdr_tbl);
+                         $sub_formula_4=(double)$value*(double)$req_array[Constants::EXIST_TAIL_SYS_EXTERNAL_TOT_LENGTH];                 
+                         //dd($value);
+                  }
+                  $sub_formula_5=$req_array[Constants::EXIST_CONNECTOR_LOSS];
+                 
+                  try{
+                        $bml_new_tma_tbl=$this->ebp_service->getNwTmaTbl();
+                        //dd($bml_new_tma_tbl);
+                        $sub_formula_6=$this->excelVLookUpCalculation($req_array[Constants::EXIST_TMA],'preferredMaterial','paramValue',$bml_new_tma_tbl);
+                  } catch(Exception $e) {
+                        $sub_formula_6=0;
+                  }
+                  if($req_array[Constants::EXIST_DC_STOPS]==0){
+                        $sub_formula_7=0;
+                  } else {                      
+                         $sub_formula_7=$req_array[Constants::EXIST_DC_STOPS]*0.1;                 
+                         //dd($value);
+                  }
+                  try{
+                        $bml_new_comb_tbl=$this->ebp_service->getNwCombTbl();
+                        //dd($bml_new_comb_tbl);
+                        $sub_formula_8=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_1],'preferredMaterial','paramValue',$bml_new_comb_tbl);
+                  } catch(Exception $e) {
+                        $sub_formula_8=0;
+                  }
+                  try{
+                        $bml_new_comb_tbl=$this->ebp_service->getNwCombTbl();
+                        //dd($bml_new_comb_tbl);
+                        $sub_formula_9=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_2],'preferredMaterial','paramValue',$bml_new_comb_tbl);
+                  } catch(Exception $e) {
+                        $sub_formula_9=0;
+                  }
+                  try{
+                        $bml_new_comb_tbl=$this->ebp_service->getNwCombTbl();
+                        //dd($bml_new_comb_tbl);
+                        $sub_formula_10=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_3],'preferredMaterial','paramValue',$bml_new_comb_tbl);
+                  } catch(Exception $e) {
+                        $sub_formula_10=0;
+                  }
+                  try{
+                        $bml_new_comb_tbl=$this->ebp_service->getNwCombTbl();
+                        //dd($bml_new_comb_tbl);
+                        $sub_formula_11=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_4],'preferredMaterial','paramValue',$bml_new_comb_tbl);
+                  } catch(Exception $e) {
+                        $sub_formula_11=0;
+                  }
+                  try{
+                        $bml_new_comb_tbl=$this->ebp_service->getNwCombTbl();
+                        //dd($bml_new_comb_tbl);
+                        $sub_formula_12=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_5],'preferredMaterial','paramValue',$bml_new_comb_tbl);
+                  } catch(Exception $e) {
+                        $sub_formula_12=0;
+                  }
+            //      $sub_formula_1=$sub_formula_2 + $sub_formula_3 + $sub_formula_4 + $sub_formula_5 + $sub_formula_6 + $sub_formula_7 + $sub_formula_8 + $sub_formula_9 + $sub_formula_10 + $sub_formula_11 + $sub_formula_12;   
+                  $sub_formula_1=(double)$sub_formula_2 + (double)$sub_formula_3 +(double) $sub_formula_4 +(double) $sub_formula_5 + (double)$sub_formula_6 + (double)$sub_formula_7 + (double)$sub_formula_8 + (double)$sub_formula_9 +(double)$sub_formula_10 + (double)$sub_formula_11 + (double)$sub_formula_12;                   
+                  return $sub_formula_1;
+                      //dd($sub_formula_1);
+             }
+      }
+          // Proposed UL System loss (BTS to Antenna)(dB)
+      public function ProposedULSystemLoss($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {    
+          /* IF(H274="N/A","N/A", 
+          (IF(H283="None",0,(((VLOOKUP(H283,nwFdrTbl,MATCH(H274,Freq_list,0)+1,0)))*H284)))+
+          (((IF(H286="None",0,(VLOOKUP(H286,TailAttenTbl,MATCH(H274,Freq_list,0)+1,0)))))*H287)+
+          (((IF(H291="None",0,(VLOOKUP(H291,TailAttenTbl,MATCH(H274,Freq_list,0)+1,0)))))*H292)+H302+
+          (IFERROR(VLOOKUP(H300,nwTMATbl,2,0),0))+(IF(H299=0,0,(H299*0.1)))+
+          (IFERROR(VLOOKUP(H294,nwCombTbl,2,0),0))+(IFERROR(VLOOKUP(H295,nwCombTbl,2,0),0))+
+          (IFERROR(VLOOKUP(H296,nwCombTbl,2,0),0))+(IFERROR(VLOOKUP(H297,nwCombTbl,2,0),0))+
+          (IFERROR(VLOOKUP(H298,nwCombTbl,2,0),0)))
+                       Formula Designed List Items
+            Independent Value =>  H274-- Frequency H283—Feeder Type H284-- Feeder Length (metres) H286-- Tail System (internal) 
+           H287-- Tail System (internal) Total Length H291-- Tail System (external) H292-- Tail System (external) Total Length 
+           H294-- Combiner/Filter 1 H295-- Combiner/Filter 2 H296-- Combiner/Filter 3 H297-- Combiner/Filter 4 H298-- Combiner/Filter 5 
+           H299-- DC Stops H300—TMA
+            Existed Calculated Value =>   H302-- Connector Loss                  
+            vlookup=>Freq_list nwFdrTbl TailAttenTbl nwTMATbl nwCombTbl */
+            $frequency_list=[700,850,900,1800,2100,2300,2600,3600];
+            $formula_req_elements = [Constants::EXIST_FREQUENCY,Constants::EXIST_FEEDER_TYPE,Constants::EXIST_FEEDER_LENGTH,
+            Constants::EXIST_TAIL_SYS_INTERNAL,Constants::EXIST_TAIL_SYS_INTERNAL_TOT_LENGTH,Constants::EXIST_TAIL_SYS_EXTERNAL,
+            Constants::EXIST_TAIL_SYS_EXTERNAL_TOT_LENGTH,Constants::EXIST_TMA,Constants::EXIST_DC_STOPS,Constants::EXIST_COMBINER_FILTER_1,Constants::EXIST_COMBINER_FILTER_2,
+            Constants::EXIST_COMBINER_FILTER_3,Constants::EXIST_COMBINER_FILTER_4,Constants::EXIST_COMBINER_FILTER_5];
+            
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+
+            $formula_dependent_req_elements = [Constants::EXIST_CONNECTOR_LOSS];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+                  //print_r($req_array);
+                  if($req_array[Constants::EXIST_FREQUENCY] == '0.1')
+                  {
+                       //print_r("hi");die;
+                       return;
+                      // $req_array[Constants::EXIST_FREQUENCY] == 'N/A';
+                  }
+           if($req_array[Constants::EXIST_FREQUENCY] == 'N/A'){
+                       return 'N/A';
+           } else {
+                 $sub_formula_1 = $sub_formula_2 = $sub_formula_3 = $sub_formula_4 = $sub_formula_5 = $sub_formula_6 = $sub_formula_7 = $sub_formula_8 = $sub_formula_9=  $sub_formula_10= $sub_formula_11 = $sub_formula_12 ='';           
+                 if($req_array[Constants::EXIST_FEEDER_TYPE] == 'None'){
+                        $sub_formula_2=0;
+                 } else {
+                       //dd($req_array[Constants::EXIST_FREQUENCY]);
+                       $column_index=$this->matchInformation($req_array[Constants::EXIST_FREQUENCY],$frequency_list);
+                       //dd($column_index);
+                       $column_name=$frequency_list[$column_index];//dd($column_name);
+                       $bml_new_fdr_tbl=$this->ebp_service->getNewFdrTbl();
+                      //dd($bml_new_fdr_tbl);// dd($req_array[Constants::EXIST_FEEDER_TYPE]);
+                       $value=$this->excelVLookUpCalculation($req_array[Constants::EXIST_FEEDER_TYPE],'frequency',$column_name,$bml_new_fdr_tbl);
+                       $sub_formula_2=(double)$value*(double)$req_array[Constants::EXIST_FEEDER_LENGTH];
+                       //dd($value);                       
+                 }
+                 if($req_array[Constants::EXIST_TAIL_SYS_INTERNAL]=='None'){
+                        $sub_formula_3=0;
+                 } else {
+                       $column_index=$this->matchInformation($req_array[Constants::EXIST_FREQUENCY],$frequency_list);
+                       //dd($column_index);
+                       $column_name=$frequency_list[$column_index];//dd($column_name);
+                       $bml_tail_atten_tbl=$this->ebp_service->getTailAttenTbl();
+                       //dd($bml_new_fdr_tbl);// dd($req_array[Constants::EXIST_FEEDER_TYPE]);
+                        $value=$this->excelVLookUpCalculation($req_array[Constants::EXIST_TAIL_SYS_INTERNAL],'frequency',$column_name,$bml_tail_atten_tbl);
+                        $sub_formula_3=(double)$value*(double)$req_array[Constants::EXIST_TAIL_SYS_INTERNAL_TOT_LENGTH];                 
+                        //dd($value);
+                 }
+                 if($req_array[Constants::EXIST_TAIL_SYS_EXTERNAL]=='None'){
+                        $sub_formula_4=0;
+                 } else {
+                       $column_index=$this->matchInformation($req_array[Constants::EXIST_FREQUENCY],$frequency_list);
+                       //dd($column_index);
+                       $column_name=$frequency_list[$column_index];//dd($column_name);
+                       $bml_new_fdr_tbl=$this->ebp_service->getTailAttenTbl();
+                       //dd($bml_new_fdr_tbl);// dd($req_array[Constants::EXIST_FEEDER_TYPE]);
+                        $value=$this->excelVLookUpCalculation($req_array[Constants::EXIST_TAIL_SYS_EXTERNAL],'frequency',$column_name,$bml_new_fdr_tbl);
+                        $sub_formula_4=(double)$value*(double)$req_array[Constants::EXIST_TAIL_SYS_EXTERNAL_TOT_LENGTH];                 
+                        //dd($value);
+                 }
+                 $sub_formula_5=$req_array[Constants::EXIST_CONNECTOR_LOSS];
+                
+                 try{
+                       $bml_new_tma_tbl=$this->ebp_service->getNwTmaTbl();
+                       //dd($bml_new_tma_tbl);
+                       $sub_formula_6=$this->excelVLookUpCalculation($req_array[Constants::EXIST_TMA],'preferredMaterial','paramValue',$bml_new_tma_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_6=0;
+                 }
+                 if($req_array[Constants::EXIST_DC_STOPS]==0){
+                        $sub_formula_7=0;
+                 } else {                      
+                        $sub_formula_7=$req_array[Constants::EXIST_DC_STOPS]*0.1;                 
+                        //dd($value);
+                 }
+                 try{
+                       $bml_new_comb_tbl=$this->ebp_service->getNwCombTbl();
+                       //dd($bml_new_comb_tbl);
+                       $sub_formula_8=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_1],'preferredMaterial','paramValue',$bml_new_comb_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_8=0;
+                 }
+                 try{
+                       $bml_new_comb_tbl=$this->ebp_service->getNwCombTbl();
+                       //dd($bml_new_comb_tbl);
+                       $sub_formula_9=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_2],'preferredMaterial','paramValue',$bml_new_comb_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_9=0;
+                 }
+                 try{
+                       $bml_new_comb_tbl=$this->ebp_service->getNwCombTbl();
+                       //dd($bml_new_comb_tbl);
+                       $sub_formula_10=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_3],'preferredMaterial','paramValue',$bml_new_comb_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_10=0;
+                 }
+                 try{
+                       $bml_new_comb_tbl=$this->ebp_service->getNwCombTbl();
+                       //dd($bml_new_comb_tbl);
+                       $sub_formula_11=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_4],'preferredMaterial','paramValue',$bml_new_comb_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_11=0;
+                 }
+                 try{
+                       $bml_new_comb_tbl=$this->ebp_service->getNwCombTbl();
+                       //dd($bml_new_comb_tbl);
+                       $sub_formula_12=$this->excelVLookUpCalculation($req_array[Constants::EXIST_COMBINER_FILTER_5],'preferredMaterial','paramValue',$bml_new_comb_tbl);
+                 } catch(Exception $e) {
+                       $sub_formula_12=0;
+                 }
+                //$sub_formula_1=$sub_formula_2 + $sub_formula_3 + $sub_formula_4 + $sub_formula_5 + $sub_formula_6 + $sub_formula_7 + $sub_formula_8 + $sub_formula_9 + $sub_formula_10 + $sub_formula_11 + $sub_formula_12;           
+                $sub_formula_1=(double)$sub_formula_2 + (double)$sub_formula_3 +(double) $sub_formula_4 +(double) $sub_formula_5 + (double)$sub_formula_6 + (double)$sub_formula_7 + (double)$sub_formula_8 + (double)$sub_formula_9 +(double)$sub_formula_10 + (double)$sub_formula_11 + (double)$sub_formula_12;                   
+                return $sub_formula_1;
+                     //dd($sub_formula_1);
+            }
+      }
+      //Proposed  RX Attenuation Setting (dB)
+      public function ProposedRXAttenuationSetting($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {
+           //IF(H300="N/A",0,VLOOKUP(H300,nwTMATbl,3,0)-H304) 
+           /* Formula Designed List Items
+                  Independent Value =>         H300-- TMA ..PROPOSED_TMA
+                  Existed Calculated Value => H304--Proposed UL System Losses (BTS to Antenna)(dB)  .. PROPOSED_UL_SYS_LOSS*/
+            $formula_req_elements = [Constants::PROPOSED_TMA];//independent values
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+
+            $formula_dependent_req_elements = [Constants::PROPOSED_UL_SYS_LOSS];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+            //dd($req_array);
+            if($req_array[Constants::PROPOSED_TMA] == 'N/A'){
+                  return 0;
+            }
+            else
+            {
+                 $bml_tma_data=$this->ebp_service->getBmlTmaData();
+                // dd($antenna_tu);
+               // dd($bml_tma_data);
+                 $value=$this->excelVLookUpCalculation($antenna_tu,'preferredMaterial','paramValue',$bml_tma_data);
+                 //dd($value);
+                 //if()
+                 return (double)$value-(double)($req_array[Constants::PROPOSED_UL_SYS_LOSS]);
+            }
+      }
+      public function ProposedExistingSysLossCalculation($antenna_tu = '', $list_infor = [], $existed_calculated_values = []){
+
+            $req_list_info = [Constants::PROPOSED_FREQUENCY, 'EXISTING_INFOR_'.Constants::EXIST_FREQUENCY, 'EXISTING_INFOR_'.Constants::EXIST_EXISTING_SYS_LOSS];
+            $identification = 0;
+            $req_array = [];
+            $tuindex = 0;
+            //dd($req_list_info);
+            foreach($req_list_info as $formula_list_name){
+                  foreach($list_infor as $list_item){
+                        if($list_item['list_name'] == $formula_list_name){
+                              $identification++;
+                              $index = 0;
+                              $req_array[$tuindex]['list_name'] = $formula_list_name;
+                              foreach($list_item['tus'] as $dev){
+                                    $req_array[$tuindex]['info'][$index]['name'] = $dev['name'].$index;
+                                    $req_array[$tuindex]['info'][$index]['value'] = $dev['value'];
+                                    $index++;
+                              }
+                              $tuindex++;
+                        }
+                  }
+            }
+            $req_value = 'N/A';
+                 dd($req_array);
+            if(isset($req_array[0]['list_name']) && $req_array[0]['list_name'] == Constants::PROPOSED_FREQUENCY){
+                  $tu_index = 0;
+                  foreach($req_array[0]['info'] as $tu_info ){
+                        $frequency = $tu_info['value'];
+                        if($tu_info['name'] == $antenna_tu){
+                              foreach($req_array as $list_info){
+                                    if($list_info['list_name'] == 'EXISTING_INFOR_'.Constants::EXIST_FREQUENCY){
+                                          $compare_index = 0;
+                                           //$hii=$list_info['info'];dd($hii);
+                                          // isset($list_info['info'])
+                                          foreach($list_info['info'] as $compare_tu){
+                                                // dd($compare_tu);
+                                                if($compare_tu['value'] == $frequency){                                                     
+                                                      $req_value = $req_array[2]['info'][$compare_index]['value'];
+
+                                                       return $req_value;
+                                                      // break;
+                                                }
+                                                $compare_index++;
+                                          }
+                                    }
+                              }
+                        }
+                        $tu_index++;
+                  }
+            }
+            return $req_value;
+      }
+
+      //System Loss Delta (exc antenna gain delta)(+ve Degraded -ve Improved)
+      public function SystemLossDelta($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {
+            /* IF(H306="N/A", "N/A",H303-H306) 
+            Formula Designed List Items                 
+                  Existed Calculated Value => 303-PROPOSED_DL_SYS_LOSS,306- PROPOSED_EXIST_SYS_LOSS  */
+      
+            $req_array=[];
+            $formula_dependent_req_elements = [Constants::PROPOSED_DL_SYS_LOSS,Constants::PROPOSED_EXIST_SYS_LOSS];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+            //dd($req_array);
+
+            if($req_array[Constants::PROPOSED_EXIST_SYS_LOSS] == 'N/A'){
+                  return 'N/A';
+            } else {
+                  return (double)($req_array[Constants::PROPOSED_DL_SYS_LOSS])-(double)($req_array[Constants::PROPOSED_EXIST_SYS_LOSS]);
+            }
+      }
+      public function ProposedExistingAntennaGain($antenna_tu = '', $list_infor = [], $existed_calculated_values = []){
+
+            $req_list_info = [Constants::PROPOSED_FREQUENCY, 'EXISTING_INFOR_'.Constants::EXIST_FREQUENCY, 'EXISTING_INFOR_'.Constants::EXIST_ANTENNA_GAIN_DBI];
+            $identification = 0;
+            $req_array = [];
+            $tuindex = 0;
+            foreach($req_list_info as $formula_list_name){
+                  foreach($list_infor as $list_item){
+                        if($list_item['list_name'] == $formula_list_name){
+                              $identification++;
+                              $index = 0;
+                              $req_array[$tuindex]['list_name'] = $formula_list_name;
+                              foreach($list_item['tus'] as $dev){
+                                    $req_array[$tuindex]['info'][$index]['name'] = $dev['name'].$index;
+                                    $req_array[$tuindex]['info'][$index]['value'] = $dev['value'];
+                                    $index++;
+                              }
+                              $tuindex++;
+                        }
+                  }
+            }
+            $req_value = 'N/A';
+            if(isset($req_array[0]['list_name']) && $req_array[0]['list_name'] == Constants::PROPOSED_FREQUENCY){
+                  $tu_index = 0;
+                  foreach($req_array[0]['info'] as $tu_info ){
+                        $frequency = $tu_info['value'];
+                        if($tu_info['name'] == $antenna_tu){
+                              foreach($req_array as $list_info){
+                                    if($list_info['list_name'] == 'EXISTING_INFOR_'.Constants::EXIST_FREQUENCY){
+                                          $compare_index = 0;
+                                          foreach($list_info['info'] as $compare_tu){
+                                                // dd($compare_tu);
+                                                if($compare_tu['value'] == $frequency){
+                                                      $req_value = $req_array[2]['info'][$compare_index]['value'];
+                                                      return $req_value;
+                                                      // break;
+                                                      
+                                                }
+                                                $compare_index++;
+                                          }
+                                    }
+                              }
+                        }
+                        $tu_index++;
+                  }
+            }
+            return $req_value;
+      }
+
+      //Existing Antenna Gain for proposed */.................................
+      public function ProposedExistingAntennaGainOld($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {
+                   /*         Formula Designed List Items
+                  Independent Value =>         H274-- Frequency PROPOSED_FREQUENCY
+                  Existed Calculated Value => H304--Proposed UL System Losses (BTS to Antenna)(dB)  .. PROPOSED_UL_SYS_LOSS*/
+                  $formula_req_elements = [Constants::PROPOSED_FREQUENCY,'EXISTING_INFOR_'.Constants::EXIST_FREQUENCY,'EXISTING_INFOR_'.Constants::EXIST_EXISTING_SYS_LOSS];//independent values
+                  $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+      
+                  $formula_dependent_req_elements = [];
+                  $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+                  //dd($req_array);
+      
+                  if($req_array[Constants::PROPOSED_FREQUENCY] ==$req_array['EXISTING_INFOR_'.Constants::EXIST_FREQUENCY]){
+                        return $req_array['EXISTING_INFOR_'.Constants::EXIST_EXISTING_SYS_LOSS];
+                  }
+                  else
+                  {
+                       return 'N/A';
+                  }
+           
+      }
+      public function ProposedAntennaGainDelta($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {
+            
+           /* Antenna Gain Delta  (+ve Degraded -ve Improved)= 
+            IF(H308="N/A","N/A",H308-H275)
+             H275-- Antenna Gain dBi ..H308-- Existing Antenna Gain
+            Formula Designed List Items
+                 Existed Calculated Value => //H275-- PROPOSED_ANTENNA_GAIN_DBI,, H308-- PROPOSED_EXISTING_ANTENNA_GAIN*/
+            $req_array=[];
+            $formula_dependent_req_elements = [Constants::PROPOSED_ANTENNA_GAIN_DBI,Constants::PROPOSED_EXISTING_ANTENNA_GAIN];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+            //dd($req_array[Constants::PROPOSED_ANTENNA_GAIN_DBI]);
+          //print_r($req_array);die;
+           //if($req_array[Constants::PROPOSED_EXISTING_ANTENNA_GAIN])
+            if($req_array[Constants::PROPOSED_EXISTING_ANTENNA_GAIN] == 'N/A'){
+                  return 'N/A';
+            } else {
+                  return (double)($req_array[Constants::PROPOSED_EXISTING_ANTENNA_GAIN])-(double)($req_array[Constants::PROPOSED_ANTENNA_GAIN_DBI]);
+            }
+      }
+      public function ProposedAntennaSystemLoss($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {
+           /* IF(H309="N/A", "N/A",H307+H309) 
+            H307-- System Loss Delta (exc antenna gain delta)(+ve Degraded -ve Improved)             
+            H309-- Antenna Gain Delta  (+ve Degraded -ve Improved)
+            Formula Designed List Items                 
+                  Existed Calculated Value => 307-PROPOSED_SYS_LOSS_DELTA,309- PROPOSED_ANTENNA_GAIN_DELTA  */      
+            $req_array=[];
+            $formula_dependent_req_elements = [Constants::PROPOSED_SYS_LOSS_DELTA,Constants::PROPOSED_ANTENNA_GAIN_DELTA];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+            //dd($req_array);
+
+            if($req_array[Constants::PROPOSED_ANTENNA_GAIN_DELTA] == 'N/A'){
+                  return 'N/A';
+            } else {
+                  return (double)($req_array[Constants::PROPOSED_SYS_LOSS_DELTA])+(double)($req_array[Constants::PROPOSED_ANTENNA_GAIN_DELTA]);
+            }
+      }
+      //Existing Power at the input of Antenna (dBm) (System Losses included)/STAD----------------For Proposed
+      public function ProposedPowerAntenna($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {           
+            /* IF(H274="N/A", "N/A",(10*LOG10(H311/0.001))-H303)	 
+                  Formula Designed List Items
+                  Independent Value => H274-- Frequency,H311- Total Rack To Power (W) (Per Carrier) 
+                  Existed Calculated Value => H303--Proposed DL System loss (BTS to Antenna)(dB)   */
+
+            $formula_req_elements = [Constants::PROPOSED_FREQUENCY,Constants::PROPOSED_TOTAL_RACK_TO_POWER];
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+
+            $formula_dependent_req_elements = [Constants::PROPOSED_DL_SYS_LOSS];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+                  //dd($req_array);
+      
+            if($req_array[Constants::PROPOSED_FREQUENCY] == 'N/A'){
+                  return 'N/A';
+            } else {
+                  if($req_array[Constants::PROPOSED_DL_SYS_LOSS]== 'N/A')
+                  {
+                        $req_array[Constants::PROPOSED_DL_SYS_LOSS]=0; 
+                  }
+
+                  /*if(is_string($req_array[Constants::EXIST_EXISTING_SYS_LOSS])){
+                        print_r($req_array);die;
+                  }*/
+                  return (10*log10((double)($req_array[Constants::PROPOSED_TOTAL_RACK_TO_POWER])/0.001)-(double)($req_array[Constants::PROPOSED_DL_SYS_LOSS]));
+            }
+      }
+      //EIRP (dBm) For Proposed
+      public function ProposedEIRPCalculator($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {
+            // IF(H60="N/A", "N/A",H89+H61) 
+            /* Formula Designed List Items
+                  Independent Value => EXIST_FREQUENCY
+                  Existed Calculated Value => 61-EXIST_ANTENNA_GAIN_DBI,89- EXIST_POWER_AT_THE_INPUT_OF_ANTENNA  */
+            $formula_req_elements = [Constants::EXIST_FREQUENCY];
+            $req_array = $this->getFormulaBasedValues($antenna_tu, $list_infor, $formula_req_elements);
+
+            $formula_dependent_req_elements = [Constants::EXIST_ANTENNA_GAIN_DBI,Constants::PROPOSED_POWER_AT_INPUT_OF_ANTENNA];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+            //dd($req_array);
+            if($req_array[Constants::EXIST_FREQUENCY] == 'N/A'){
+                  return 'N/A';
+            } else {
+                  return (double)($req_array[Constants::PROPOSED_POWER_AT_INPUT_OF_ANTENNA])+(double)($req_array[Constants::EXIST_ANTENNA_GAIN_DBI]);
+            }
+      }
+      //EIRP (dB) Delta (+ve Improved -ve Degraded) For Proposed
+      public function ProposedEIRPDeltaCalculator($antenna_tu = '', $list_infor = [], $existed_calculated_values = [])
+      {
+      /*IF(H313="N/A", "N/A", H313- H306) 
+            Formula Designed List Items
+                  Existed Calculated Value => H313-PROPOSED_EIRP,H306- PROPOSED_EXIST_SYS_LOSS  */
+            $req_array = [];  
+            $formula_dependent_req_elements = [Constants::PROPOSED_EIRP,Constants::PROPOSED_EXIST_SYS_LOSS];
+            $req_array = array_merge($req_array,$this->getFormulaBasedCalculatedValues($antenna_tu, $existed_calculated_values, $formula_dependent_req_elements));
+            //dd($req_array);
+            if($req_array[Constants::PROPOSED_EIRP] == 'N/A'){
+                  return 'N/A';
+            } else {
+            if($req_array[Constants::PROPOSED_EXIST_SYS_LOSS]== 'N/A')
+            {
+                  $req_array[Constants::PROPOSED_EXIST_SYS_LOSS]=0; 
+            }
+            /*if(is_string($req_array[Constants::PROPOSED_EXIST_SYS_LOSS])){
+                  dd($req_array);
+            }*/
+                  return (double)($req_array[Constants::PROPOSED_EIRP])-(double)($req_array[Constants::PROPOSED_EXIST_SYS_LOSS]);
+            }
+      }
+      //Excel download 
+  
+      public function getExistingAntennaGrid($request = []){
+            $req_array = [];
+            if(isset($request['no_of_sectors'])){      
+                  $no_of_sectors = $request['no_of_sectors'];
+                  $no_of_antenna_values = count($request['existing_antenna_values']);
+                  if ((int)$no_of_sectors == 0){
+                        return $req_array; 
+                  }
+                  $no_of_lists = (int)$no_of_antenna_values / (int)$no_of_sectors;
+                  $no_of_tus = [];
+                  $index = 0;
+                  foreach($request['sector_info'] as $sector) {
+                        foreach($sector['Antenna_Model'] as $model) {
+                              $no_of_tus[] = $model;
+                        }
+                        $titles = [];
+                        foreach($request['existing_antenna_values'] as $list_infor) {
+                              $titles[] = $list_infor['list_name'];
+                        }
+                        $req_array[$index]['titles'] = array_unique($titles);
+                        $req_array[$index]['tus_count'] = count($sector['Antenna_Model']);
+                        $req_array[$index]['sector'] = $sector['name'];
+      
+                        $tu_index = 0; $tu_information = [];
+      
+                        
+                        $end = ($index+1) * $no_of_lists;
+                        $start = $end - $no_of_lists;
+                        $temp_tu_arr = [];
+                        for($i = $start; $i < $end; $i++){
+                              $temp_tu_arr[] = $request['existing_antenna_values'][$i];
+                        }
+                      
+                        foreach($sector['Antenna_Model'] as $sector_tu) {
+                              foreach(array_column($temp_tu_arr,'tus') as $tu){
+                                    for($i = 0; $i < count($tu); $i++) {
+                                          if($sector_tu == $tu[$i]['name']) {   
+                                                if( !isset($tu_information[$i])) {
+                                                      $tu_information[$i][] = $tu[$i]['name'];          
+                                                }
+                                            $tu_information[$i][] = $tu[$i]['value'];
+                                          }
+                                    }                              
+                              }
+                        }
+                        foreach($tu_information as $tu){
+                              $req_array[$index]['tu_information'][$tu_index] = $tu;
+                              $tu_index++;
+                        }
+      
+                        $index++;
+                  }
+            }        
+            return $req_array; 
+      }
+      public function getProposedAntennaGrid($request = []){
+            $req_array = [];
+            if(isset($request['no_of_sectors'])){    
+            $no_of_sectors = $request['no_of_sectors'];
+            $no_of_antenna_values = count($request['proposed_antenna_values']);
+            if ((int)$no_of_sectors == 0){
+                  return $req_array; 
+            }
+            $no_of_lists = (int)$no_of_antenna_values / (int)$no_of_sectors;
+            $no_of_tus = [];
+            $index = 0;
+            foreach($request['sector_info'] as $sector) {
+                  foreach($sector['Antenna_Model'] as $model) {
+                        $no_of_tus[] = $model;
+                  }
+                  $titles = [];
+                  foreach($request['proposed_antenna_values'] as $list_infor) {
+                        $titles[] = $list_infor['list_name'];
+                  }
+                  $req_array[$index]['titles'] = array_unique($titles);
+                  $req_array[$index]['tus_count'] = count($sector['Antenna_Model']);
+                  $req_array[$index]['sector'] = $sector['name'];
+
+                  $tu_index = 0; $tu_information = [];
+
+                  
+                  $end = ($index+1) * $no_of_lists;
+                  $start = $end - $no_of_lists;
+                  $temp_tu_arr = [];
+                  for($i = $start; $i < $end; $i++){
+                        $temp_tu_arr[] = $request['proposed_antenna_values'][$i];
+                  }
+                
+                  foreach($sector['Antenna_Model'] as $sector_tu) {
+                        foreach(array_column($temp_tu_arr,'tus') as $tu){
+                              for($i = 0; $i < count($tu); $i++) {
+                                    if($sector_tu == $tu[$i]['name']) {   
+                                          if( !isset($tu_information[$i])) {
+                                                $tu_information[$i][] = $tu[$i]['name'];          
+                                          }
+                                      $tu_information[$i][] = $tu[$i]['value'];
+                                    }
+                              }                              
+                        }
+                  }
+                  foreach($tu_information as $tu){
+                        $req_array[$index]['tu_information'][$tu_index] = $tu;
+                        $tu_index++;
+                  }
+
+                  $index++;
+            }
+            }
+            return $req_array; 
+      }  
+}
